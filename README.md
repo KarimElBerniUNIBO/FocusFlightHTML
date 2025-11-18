@@ -4,7 +4,7 @@
 
 Instead of a simple timer, pick a destination on the 3D globe: the flight duration (and thus your focus session) is calculated based on the real distance from the departure base (Bologna).
 
-*(Replace this link with a real screenshot of your app once uploaded)*
+![Alt Text](assets/preview.png)
 
 ---
 

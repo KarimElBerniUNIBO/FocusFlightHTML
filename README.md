@@ -42,32 +42,10 @@ FocusFlight/
 
 Because of browser policies (CORS), you must use a local server.
 
-### Option A — VS Code (Recommended)
+### VS Code (Recommended)
 1. Install **Live Server**
 2. Open the project
 3. Right-click `index.html` → **Open with Live Server**
-
-### Option B — Python
-```
-python -m http.server
-```
-Open: `http://localhost:8000`
-
-### Option C — Node.js
-```
-npm install -g http-server
-http-server .
-```
-
----
-
-## 🛠️ Assets Configuration
-
-Add to the `assets/` folder:
-
-- earth.jpg – earth texture
-- plane.glb – 3D model (GLB/GLTF)
-- plane.webp / plane_flying.webp – transparent icons
 
 ---
 

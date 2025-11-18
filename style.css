@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #000;
+    color: white;
+    overflow: hidden;
+    margin: 0;
+}
+
+/* --- 3D Overlay & Interactive Elements --- */
+#globe-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    background: radial-gradient(circle at center, #1a1d29 0%, #000000 100%);
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; /* IMPORTANTE: Lascia passare i click al canvas 3D */
+    z-index: 10;
+}
+
+.interactive-ui {
+    pointer-events: auto; /* Riabilita i click per i pulsanti UI */
+}
+
+/* Tooltip Città 3D */
+#cityLabel {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.9);
+    color: #60a5fa;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    pointer-events: none;
+    display: none;
+    z-index: 20;
+    border: 1px solid #3b82f6;
+    transform: translate(-50%, -180%);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Finestrino Aereo --- */
+.porthole {
+    width: 340px;
+    height: 500px;
+    background: #cbd5e1;
+    border-radius: 160px;
+    padding: 15px;
+    box-shadow: inset 5px 5px 20px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 10;
+}
+
+.porthole-glass {
+    width: 100%; height: 100%;
+    border-radius: 145px;
+    overflow: hidden;
+    border: 8px solid #94a3b8;
+    position: relative;
+    background: linear-gradient(to bottom, #0f172a, #1e3a8a);
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+}
+
+.cloud {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    filter: blur(10px);
+    animation: moveClouds linear infinite;
+}
+
+@keyframes moveClouds {
+    0% { transform: translateX(200%); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(-200%); opacity: 0; }
+}
+
+/* --- Utility Utilities --- */
+.hidden-screen { display: none !important; }
+.flex-screen { display: flex !important; }
+
+/* Stato attivo pulsanti durata */
+.duration-btn.active-dur {
+    background-color: #2563eb; /* blue-600 */
+    color: white;
+    border-color: #2563eb;
+}

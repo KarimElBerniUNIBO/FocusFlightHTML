@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlight 3D - Earth Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Three.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Aggiunto GLTFLoader per i modelli 3D -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <!-- TOOLTIP -->
+    <div id="cityLabel">City Name</div>
+
+    <!-- LAYER 1: GLOBO 3D -->
+    <div id="globe-container">
+        <!-- UI Overlay -->
+        <div id="ui-layer" class="flex flex-col justify-between p-8">
+            <div class="interactive-ui">
+                <h1 class="text-4xl font-bold text-white drop-shadow-lg">
+                    <i class="fa-solid fa-earth-americas mr-3 text-blue-500"></i>FocusFlight 
+                    <span class="text-xs bg-blue-600 px-2 rounded align-top">3D</span>
+                </h1>
+                <p class="text-blue-200 drop-shadow-md mt-2 max-w-md">
+                    Partenza: <b>Bologna</b>. Clicca su una destinazione per calcolare la rotta.
+                </p>
+            </div>
+
+            <div class="interactive-ui bg-black/50 backdrop-blur-md p-4 rounded-xl border border-white/10 w-fit">
+                <p class="text-xs text-slate-400 uppercase">Miglia Totali</p>
+                <p class="text-2xl font-mono font-bold text-white" id="totalMilesDisplay">0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE CONFIGURAZIONE VOLO -->
+    <div id="flightConfigModal" class="hidden-screen fixed inset-0 z-50 bg-black/80 backdrop-blur-sm items-center justify-center p-4 flex">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-2xl max-w-md w-full shadow-2xl">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <p class="text-blue-400 text-xs font-bold uppercase tracking-widest mb-1">Destinazione</p>
+                    <h2 id="selectedCityName" class="text-3xl font-bold text-white">--</h2>
+                </div>
+                <button id="closeModalBtn" class="text-slate-500 hover:text-white transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+
+            <div class="space-y-6 mb-6">
+                <!-- Display Tempo Calcolato -->
+                <div class="bg-blue-900/30 border border-blue-500/30 p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-blue-300 uppercase tracking-wider mb-1">Tempo di Volo Stimato</p>
+                        <p class="text-2xl font-mono font-bold text-white" id="calculatedDurationDisplay">00 min</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Distanza</p>
+                        <p class="text-lg font-mono text-slate-300" id="distanceDisplay">0 km</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-2">Obiettivo (Task)</label>
+                    <input type="text" id="taskInput" placeholder="Cosa devi completare?" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-white outline-none focus:border-blue-500 transition">
+                </div>
+
+                <div class="flex items-center gap-3 p-3 bg-slate-800 rounded border border-slate-700">
+                    <input type="checkbox" id="soundToggle" class="w-4 h-4 accent-blue-500" checked>
+                    <label for="soundToggle" class="text-sm text-slate-300 cursor-pointer select-none">Attiva motori (Brown Noise)</label>
+                </div>
+            </div>
+
+            <button id="takeoffBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                <i class="fa-solid fa-plane-departure"></i> DECOLLA
+            </button>
+        </div>
+    </div>
+
+    <!-- LAYER 2: IN VOLO -->
+    <div id="flightMode" class="hidden-screen fixed inset-0 z-50 bg-slate-900 flex-col items-center justify-center">
+        <!-- Finestrino rimosso visivamente ma mantenuto nel DOM se serve logica futura -->
+        <div class="porthole mb-8 shadow-2xl hidden">
+            <div class="porthole-glass window-view" id="windowView"></div>
+        </div>
+
+        <div class="text-center z-10 pointer-events-auto mt-auto mb-12 w-full max-w-2xl px-4">
+            <div class="bg-black/60 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-left">
+                        <span class="text-slate-400 text-xs uppercase tracking-widest block">Volo verso</span>
+                        <span id="flightDestDisplay" class="text-white font-bold text-lg">--</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-400 text-xs uppercase tracking-widest block">Arrivo previsto</span>
+                        <span id="arrivalTimeDisplay" class="text-blue-400 font-mono text-lg">--:--</span>
+                    </div>
+                </div>
+                
+                <div id="timerDisplay" class="text-7xl md:text-8xl font-bold text-white font-mono tracking-tighter mb-6 drop-shadow-lg">
+                    00:00
+                </div>
+
+                <div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden relative mb-6">
+                    <div id="progressBar" class="absolute left-0 top-0 bottom-0 bg-blue-500 w-0 transition-all duration-1000"></div>
+                </div>
+
+                <button id="abortBtn" class="text-red-400 hover:text-red-300 text-xs uppercase tracking-widest border border-red-500/30 px-6 py-3 rounded-lg hover:bg-red-500/10 transition w-full sm:w-auto">
+                    Interrompi Volo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LAYER 3: ATTERRAGGIO -->
+    <div id="landedScreen" class="hidden-screen fixed inset-0 z-50 bg-slate-900 flex-col items-center justify-center p-6">
+        <div class="bg-white text-slate-900 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Benvenuto a <span id="arrivalCity">--</span></h2>
+            <p class="text-slate-500 mb-6">Sessione di focus completata.</p>
+            
+            <div class="bg-slate-100 p-4 rounded-lg mb-6 flex justify-between items-center">
+                <span class="text-slate-500 text-sm font-medium">Miglia Guadagnate</span>
+                <span class="text-blue-600 font-bold text-xl font-mono" id="earnedMiles">+0</span>
+            </div>
+
+            <button id="returnBtn" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition">
+                Torna alla Mappa
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
